@@ -1,0 +1,69 @@
+import random
+from collections import defaultdict
+
+class PersonalizedRecommendationEngine:
+    def _init_(self):
+        self.user_preferences = defaultdict(lambda: {'genres': [], 'ratings': {}})
+        self.item_database = {
+            'movies': {
+                'action': ['Movie A', 'Movie B', 'Movie C'],
+                'comedy': ['Movie X', 'Movie Y', 'Movie Z'],
+                'drama': ['Movie P', 'Movie Q', 'Movie R']
+            }
+        }
+    
+    def learn_user_preference(self, user_id, item, rating):
+        # Dynamic preference learning mechanism
+        self.user_preferences[user_id]['ratings'][item] = rating
+        
+        # Infer genre based on item
+        for genre, items in self.item_database['movies'].items():
+            if item in items:
+                if genre not in self.user_preferences[user_id]['genres']:
+                    self.user_preferences[user_id]['genres'].append(genre)
+                break
+    
+    def generate_recommendations(self, user_id, recommendation_count=3):
+        user_genres = self.user_preferences[user_id]['genres']
+        
+        if not user_genres:
+            # Fallback recommendation if no preferences learned
+            recommendations = [
+                random.choice(items) 
+                for genre_items in self.item_database['movies'].values() 
+                for items in [genre_items]
+            ]
+        else:
+            # Personalized recommendation based on learned preferences
+            recommendations = []
+            for genre in user_genres:
+                genre_recommendations = random.sample(
+                    self.item_database['movies'][genre], 
+                    min(recommendation_count, len(self.item_database['movies'][genre]))
+                )
+                recommendations.extend(genre_recommendations)
+        
+        return list(set(recommendations))[:recommendation_count]
+
+def demonstrate_recommendation_system():
+    recommender = PersonalizedRecommendationEngine()
+    
+    # Simulate user interactions
+    interactions = [
+        ('user1', 'Movie A', 4.5),
+        ('user1', 'Movie B', 4.0),
+        ('user2', 'Movie X', 3.8),
+        ('user2', 'Movie Y', 4.2)
+    ]
+    
+    for user_id, item, rating in interactions:
+        recommender.learn_user_preference(user_id, item, rating)
+    
+    # Generate recommendations
+    for user_id in ['user1', 'user2']:
+        recommendations = recommender.generate_recommendations(user_id)
+        print(f"Recommendations for {user_id}: {recommendations}")
+
+if _name_ == "_main_":
+    demonstrate_recommendation_system()
+
